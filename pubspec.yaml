@@ -1,0 +1,39 @@
+name: avoota
+description: "A new Flutter project."
+
+publish_to: 'none'  # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  assets:
+    - assets/avootalogo.png
+    - assets/user.png
+    - assets/dashboard.png
+    - assets/bookingdetails.png
+    - assets/phonepepayment.png
+    - assets/reviews.png
+    - assets/reports.png
+    - assets/logout.png
+    
+    
+
+    
+    
+    
+
+  uses-material-design: true
