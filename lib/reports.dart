@@ -4,14 +4,9 @@ class Grid extends StatefulWidget {
   @override
   _GridState createState() => _GridState();
 }
-
-
-
 class _GridState extends State<Grid> {
-
  DateTime? _fromDate;
   DateTime? _toDate;
-
   Future<void> _selectDate(BuildContext context, bool isFromDate) async {
     DateTime initialDate = DateTime.now();
     DateTime firstDate = DateTime(2000);
@@ -47,8 +42,6 @@ class _GridState extends State<Grid> {
   String? _selectedBulkAction;
   String selectedMenu = ""; // Tracks the currently selected menu item
   int _entriesPerPage=5;
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +87,6 @@ margin: const EdgeInsets.all(24),
 decoration: BoxDecoration(
   color: selectedMenu == "Revenue Report" ? Colors.white : Colors.white,
   
-
   borderRadius: BorderRadius.circular(16),
   boxShadow: [
     BoxShadow(
@@ -193,7 +185,6 @@ child: SingleChildScrollView(
       ),
 
       const SizedBox(height: 20),
-
       // Filter options (Date Picker, Bulk Actions)
       Row(
        
@@ -212,8 +203,6 @@ child: SingleChildScrollView(
                 () => _selectDate(context, false),
                 width: 140,
               ),
-          
-          
           const SizedBox(width: 16),
          Container(
                                             width: 144,
@@ -277,7 +266,6 @@ child: ElevatedButton(
         ],
       ),
       const SizedBox(height: 10),
-
       // Swap Search and Showing Entries Dropdown
                                   Row(
                                     mainAxisAlignment:
@@ -423,7 +411,6 @@ child: SingleChildScrollView( // Ensures table content is scrollable
 ),
 
       const SizedBox(height: 0),
-
       // Pagination and Total Amount
 Container(
 color: const Color(0xFFE4F0FF), // Set background color
@@ -442,10 +429,7 @@ child: Row(
 ),
 )
 ,
-      
-
   const SizedBox(height: 16),
-
     Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -480,8 +464,6 @@ child: ElevatedButton.icon(
   ),
 ),
 ),
-
-
                           SizedBox(width: 250),
 
                           // Page Numbers
@@ -521,7 +503,6 @@ child: ElevatedButton.icon(
                           SizedBox(width: 150),
 
                           // Next Button
-
                           SizedBox(
                             width: 134, // Button width in pixels
                             height: 46, // Button height in pixels
@@ -572,27 +553,18 @@ child: ElevatedButton.icon(
                                   ),
                                 ],
                               ),
-
-                              
                             ),
                           )
                         ],
                       ),
-
-
-        
-    ],    
-    
+    ],
   ),
 ),
 )
-
                   );
   }
 
-  
 
- 
   Widget _buildMenuItem(IconData icon, String title, {bool isSubItem = false}) {
     return ListTile(
       leading: Icon(icon, color: isSubItem ? Colors.grey : Colors.black),

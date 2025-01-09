@@ -1,7 +1,9 @@
 import 'package:avoota/cancellecdBookings_4.dart';
 import 'package:avoota/completedBookings_3.dart';
+import 'package:avoota/phonepay.dart';
 import 'package:avoota/reports.dart';
 import 'package:avoota/review_10.dart';
+import 'package:avoota/test.dart';
 import 'package:avoota/upcomingdetails_2.dart';
 import 'package:flutter/material.dart';
 
@@ -106,8 +108,8 @@ class _SideAndNavBarState extends State<SideAndNavBar> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 600),
-                      IconButton(
+                      Spacer(),
+                     Row(children: [ IconButton(
                         icon: const Icon(Icons.notifications),
                         color: Colors.grey[700],
                         tooltip: 'Notifications',
@@ -128,7 +130,7 @@ class _SideAndNavBarState extends State<SideAndNavBar> {
                           backgroundColor: Colors.grey[300],
                           backgroundImage: const AssetImage('assets/user.png'),
                         ),
-                      ),
+                      ),],)
                     ],
                   ),
                 );
@@ -225,7 +227,7 @@ class _SideAndNavBarState extends State<SideAndNavBar> {
                             selectedMenu = 'Cancelled Bookings';
                             selectedParent = 0;
                             selectedChild = 2;
-                            _currentPage = CancelledBookings();
+                            _currentPage = UpcomingBookingsPage();
                           });
                         },
                       ),
@@ -243,12 +245,12 @@ class _SideAndNavBarState extends State<SideAndNavBar> {
                     onTap: () {
                       setState(() {
                         selectedMenu = 'PhonePe Payment';
-                        _currentPage = Center(
-                          child: Text(
-                            'PhonePe Payment Content',
-                            style: TextStyle(fontSize: 18),
-                          ),
-                        );
+                        _currentPage = paymentscreen();
+                          // child: Text(
+                          //   'PhonePe Payment Content',
+                          //   style: TextStyle(fontSize: 18),
+                          // ),
+                       
                       });
                     },
                   ),

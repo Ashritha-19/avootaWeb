@@ -1,13 +1,14 @@
+import 'package:avoota/phone_pay_details.dart';
 import 'package:flutter/material.dart';
 import 'package:avoota/cancelledbookings.dart';
 import 'package:avoota/tableFilters.dart';
 
-class CancelledBookings extends StatefulWidget {
+class paymentscreen extends StatefulWidget {
   @override
-  _CancelledBookingsState createState() => _CancelledBookingsState();
+  _paymentscreenState createState() => _paymentscreenState();
 }
 
-class _CancelledBookingsState extends State<CancelledBookings> {
+class _paymentscreenState extends State<paymentscreen> {
   List<bool> _selectedRows = List<bool>.generate(5, (index) => false); // Track row selection
   int currentPage = 1;
   int totalEntries = 25; // Total number of bookings
@@ -62,14 +63,14 @@ class _CancelledBookingsState extends State<CancelledBookings> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Text(
-                        "Cancelled Bookings",
+                        "PhonePay Payment",
                         style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
                   SizedBox(height: 10),
                   Text(
-                    "Dashboard / cancelled Bookings",
+                    "Dashboard / PhonePay Payment",
                     style: TextStyle(
                         fontSize: 16,
                         color: const Color.fromARGB(255, 59, 99, 243)),
@@ -150,9 +151,10 @@ class _CancelledBookingsState extends State<CancelledBookings> {
                             ),
                             DataColumn(label: Text("S.No", textAlign: TextAlign.center)),
                             DataColumn(label: Text("Booking ID", textAlign: TextAlign.center)),
-                            DataColumn(label: Text("Guest Name", textAlign: TextAlign.center)),
-                            DataColumn(label: Text("Phone", textAlign: TextAlign.center)),
-                            DataColumn(label: Text("Updated At", textAlign: TextAlign.center)),
+                            DataColumn(label: Text("Transaction ID", textAlign: TextAlign.center)), // Updated
+                            DataColumn(label: Text("Payment Status", textAlign: TextAlign.center)), // Updated
+                            DataColumn(label: Text("Payment Date", textAlign: TextAlign.center)), // Updated
+                            DataColumn(label: Text("Amount", textAlign: TextAlign.center)), // New field
                             DataColumn(label: Text("Actions", textAlign: TextAlign.center)),
                           ],
                           rows: List.generate(5, (index) {
@@ -172,10 +174,11 @@ class _CancelledBookingsState extends State<CancelledBookings> {
                                   ),
                                 ),
                                 DataCell(Center(child: Text("${index + 1}"))),
-                                DataCell(Center(child: Text("TJS207601102940 "))),
-                                DataCell(Center(child: Text("User ${index + 1}"))),
-                                DataCell(Center(child: Text("80XXXXXXXX"))),
-                                DataCell(Center(child: Text("18/11/2024"))),
+                                 DataCell(Center(child: Text("TJS207601102940"))),// Booking ID
+                                DataCell(Center(child: Text("670170dec14as19"))), // Transaction ID
+                                DataCell(Center(child: Text("PAYMENT_SUCCESS"))), // Payment Status
+                                DataCell(Center(child: Text("18/11/2024"))), // Payment Date
+                                DataCell(Center(child: Text("\$1000.00"))), // Amount
                                 DataCell(
                                   Row(
                                     children: [
@@ -183,7 +186,7 @@ class _CancelledBookingsState extends State<CancelledBookings> {
                                         onPressed: () {
                                           Navigator.push(
                                             context,
-                                            MaterialPageRoute(builder: (context) => CancelledBookingDetails()),
+                                            MaterialPageRoute(builder: (context) => PayPalPaymentScreen()),
                                           );
                                         },
                                         icon: Icon(Icons.visibility, color: Colors.blue),
@@ -199,6 +202,25 @@ class _CancelledBookingsState extends State<CancelledBookings> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 0),
+      // Pagination and Total Amount
+Container(
+color: const Color(0xFFE4F0FF), // Set background color
+padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16), // Add some padding
+child: Row(
+  mainAxisAlignment: MainAxisAlignment.center, // Align content to the center
+  children: const [
+    Text(
+      "Total Amount: 5000.00",
+      style: TextStyle(
+        fontWeight: FontWeight.bold,
+        fontSize: 16,
+      ),
+    ),
+  ],
+),
+)
+,
                   SizedBox(height: 20),
                   Row(
                     children: [
@@ -308,6 +330,7 @@ class _CancelledBookingsState extends State<CancelledBookings> {
       ),
     );
   }
+
   void _updateSelectionState() {
     _selectedRows = List<bool>.generate(entriesPerPage, (index) => false);
   }

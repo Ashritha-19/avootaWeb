@@ -19,8 +19,8 @@ class MyApp extends StatelessWidget {
       initialRoute: '/', // Initial route is set to SideAndNavBar
       routes: {
         '/': (context) => SideAndNavBar(), // Your main page
-        '/upcomingBookingDetails': (context) => const UpcomingBookingDetails(),
-        '/completedBookingDetails': (context) => const CompletedBookingDetails(),
+        '/upcomingBookingDetails': (context) => UpcomingBookingDetails( bookingId: ModalRoute.of(context)!.settings.arguments as String, ),
+        '/completedBookingDetails': (context) => CompletedBookingDetails(bookingId: ModalRoute.of(context)!.settings.arguments as String, ),
         '/cancelledBookingDetails': (context) => const CancelledBookingDetails(),
         '/reviewScreen': (context) => ReviewScreen(),
       },

@@ -63,11 +63,6 @@ class _TestState extends State<Reviews> {
                 height: screenHeight,
                 child: Column(
                   children: [
-                    // Top Container (Header)
-
-                    //
-                    //Body Container
-                    //  if (selectedItems == "Reviews")
                     Expanded(
                       child: Container(
                         width: double.infinity,
@@ -325,7 +320,7 @@ class _TestState extends State<Reviews> {
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 16),
+                                    const SizedBox(height: 10),
 
                                     // Swap Search and Showing Entries Dropdown
                                     Row(
@@ -462,7 +457,9 @@ class _TestState extends State<Reviews> {
   ),
   child: Column(
     children: [
-      DataTable(
+      SingleChildScrollView(
+  scrollDirection: Axis.horizontal,
+     child:  DataTable(
         columnSpacing: 24,
         headingRowColor: MaterialStateProperty.all(const Color(0xFFE4F0FF)),
         columns: [
@@ -508,7 +505,7 @@ class _TestState extends State<Reviews> {
                   Text('${index + 1}'),
                 ],
               )),
-              DataCell(Text('User $index')),
+               DataCell(Text('User $index')),
               DataCell(Text('user$index@test.com')),
               DataCell(
                 SizedBox(
@@ -521,60 +518,64 @@ class _TestState extends State<Reviews> {
                 ),
               ),
               DataCell(Text('2024-11-24')),
-              DataCell(
-
-             SizedBox(
-  height: 40, // Adjust the height to make it shorter or taller
-child:Container(
-  padding: const EdgeInsets.symmetric(horizontal: 12),
-  decoration: BoxDecoration(
-    border: Border.all(
-      color: Colors.blue,
-      width: 1,
+   DataCell(
+  SizedBox(
+    height: 40, // Adjust the height to make it shorter or taller
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: Colors.blue,
+          width: 1,
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: DropdownButton<String>(
+  isDense: true, // Makes the dropdown more compact
+  underline: const SizedBox(),
+  onChanged: (value) {
+    if (value == 'approve') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ReviewScreen()),
+      );
+    } else if (value == 'reply') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ReviewScreen()),
+      );
+    } else if (value == 'trash') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ReviewScreen()),
+      );
+    }
+  },
+  items: const [
+    DropdownMenuItem(
+      value: 'approve',
+      child: Text('Approve'),
     ),
-    borderRadius: BorderRadius.circular(12),
-  ),
-  child: ExpansionTile(
-    title: const Text('Actions'),
-    children: [
-      ListTile(
-        title: const Text('Approve'),
-        onTap: () {
-          // Implement Approve action
-          print('Approved');
-          // Perform navigation or any other logic for approve
-        },
-      ),
-      ListTile(
-        title: const Text('Reply'),
-        onTap: () {
-          // Implement Reply action
-          print('Reply action triggered');
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ReviewScreen()),
-          );
-        },
-      ),
-      ListTile(
-        title: const Text('Trash'),
-        onTap: () {
-          // Implement Trash action
-          print('Moved to trash');
-          // Add your trashing logic here
-        },
-      ),
-    ],
+    DropdownMenuItem(
+      value: 'reply',
+      child: Text('Reply'),
+    ),
+    DropdownMenuItem(
+      value: 'trash',
+      child: Text('Trash'),
+    ),
+  ],
+  hint: const Text('Actions'),
+)
+,
+    ),
   ),
 ),
 
-),
-
-
-
-              ),
               
             ],
+          ),
+          
           ),
           
         ),
@@ -714,11 +715,7 @@ child:Container(
      
     ],
   ),
-),
-
-
-
-                                    
+),                            
                                   ],
                                 )
                               else

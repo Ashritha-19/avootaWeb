@@ -5,6 +5,14 @@ class ReviewScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context); // This will go back to the previous screen
+          },
+        ),
+      ),
       body: Row(
         children: [
           // Sidebar Section
@@ -78,102 +86,102 @@ class ReviewScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSidebar() {
-    return Container(
-      width: 250,
-      color: Colors.white,
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          // Logo Section
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            alignment: Alignment.center,
-            child: Image.asset(
-              'assets/images/avoota_logo.png',
-              width: 120,
-              height: 50,
-              fit: BoxFit.contain,
-            ),
-          ),
-          // Menu Items
-          ListTile(
-            leading: Image.asset('assets/images/Dashboard.png'),
-            title: const Text('Dashboards'),
-            onTap: () {},
-          ),
-          ExpansionTile(
-            leading: Image.asset('assets/images/check-square.png'),
-            title: const Text('Booking Details'),
-          ),
-          ListTile(
-            leading: Image.asset('assets/images/bank-note.png'),
-            title: const Text('PhonePe Payment'),
-            onTap: () {},
-          ),
-          ListTile(
-            leading: Image.asset('assets/images/message-dots-circle.png'),
-            title: const Text('Reviews'),
-          ),
-          ListTile(
-            leading: Image.asset('assets/images/bar-chart.png'),
-            title: const Text('Reports'),
-            onTap: () {},
-          ),
-          ListTile(
-            leading: Image.asset('assets/images/log-out-04.png'),
-            title: const Text('Logout'),
-            onTap: () {},
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildSidebar() {
+  //   return Container(
+  //     width: 250,
+  //     color: Colors.white,
+  //     child: ListView(
+  //       padding: EdgeInsets.zero,
+  //       children: [
+  //         // Logo Section
+  //         Container(
+  //           padding: const EdgeInsets.symmetric(vertical: 20),
+  //           alignment: Alignment.center,
+  //           child: Image.asset(
+  //             'assets/images/avoota_logo.png',
+  //             width: 120,
+  //             height: 50,
+  //             fit: BoxFit.contain,
+  //           ),
+  //         ),
+  //         // Menu Items
+  //         ListTile(
+  //           leading: Image.asset('assets/images/Dashboard.png'),
+  //           title: const Text('Dashboards'),
+  //           onTap: () {},
+  //         ),
+  //         ExpansionTile(
+  //           leading: Image.asset('assets/images/check-square.png'),
+  //           title: const Text('Booking Details'),
+  //         ),
+  //         ListTile(
+  //           leading: Image.asset('assets/images/bank-note.png'),
+  //           title: const Text('PhonePe Payment'),
+  //           onTap: () {},
+  //         ),
+  //         ListTile(
+  //           leading: Image.asset('assets/images/message-dots-circle.png'),
+  //           title: const Text('Reviews'),
+  //         ),
+  //         ListTile(
+  //           leading: Image.asset('assets/images/bar-chart.png'),
+  //           title: const Text('Reports'),
+  //           onTap: () {},
+  //         ),
+  //         ListTile(
+  //           leading: Image.asset('assets/images/log-out-04.png'),
+  //           title: const Text('Logout'),
+  //           onTap: () {},
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
-  Widget _buildTopBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      color: Colors.white,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Search Box
-          SizedBox(
-            width: 400,
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                prefixIcon: const Icon(Icons.search, color: Colors.black),
-              ),
-            ),
-          ),
-          // Icons and Avatar Section
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.notifications_none, color: Colors.black),
-                onPressed: () {},
-              ),
-              const SizedBox(width: 10),
-              IconButton(
-                icon: const Icon(Icons.logout, color: Colors.black),
-                onPressed: () {},
-              ),
-              const SizedBox(width: 10),
-              const CircleAvatar(
-                radius: 22,
-                backgroundImage: AssetImage('assets/images/Frame.png'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildTopBar() {
+  //   return Container(
+  //     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+  //     color: Colors.white,
+  //     child: Row(
+  //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //       children: [
+  //         // Search Box
+  //         SizedBox(
+  //           width: 400,
+  //           child: TextField(
+  //             decoration: InputDecoration(
+  //               hintText: 'Search...',
+  //               border: OutlineInputBorder(
+  //                 borderRadius: BorderRadius.circular(8),
+  //                 borderSide: BorderSide(color: Colors.grey.shade300),
+  //               ),
+  //               prefixIcon: const Icon(Icons.search, color: Colors.black),
+  //             ),
+  //           ),
+  //         ),
+  //         // Icons and Avatar Section
+  //         Row(
+  //           children: [
+  //             IconButton(
+  //               icon: const Icon(Icons.notifications_none, color: Colors.black),
+  //               onPressed: () {},
+  //             ),
+  //             const SizedBox(width: 10),
+  //             IconButton(
+  //               icon: const Icon(Icons.logout, color: Colors.black),
+  //               onPressed: () {},
+  //             ),
+  //             const SizedBox(width: 10),
+  //             const CircleAvatar(
+  //               radius: 22,
+  //               backgroundImage: AssetImage('assets/images/Frame.png'),
+  //             ),
+  //           ],
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _buildTextFieldWithFixedSize(String label, String placeholder,
       {required double width, required double height}) {
