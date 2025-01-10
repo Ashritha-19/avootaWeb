@@ -3,7 +3,6 @@ import 'package:avoota/completedBookings_3.dart';
 import 'package:avoota/phonepay.dart';
 import 'package:avoota/reports.dart';
 import 'package:avoota/review_10.dart';
-import 'package:avoota/test.dart';
 import 'package:avoota/upcomingdetails_2.dart';
 import 'package:flutter/material.dart';
 
@@ -192,11 +191,18 @@ class _SideAndNavBarState extends State<SideAndNavBar> {
                         ),
                         onTap: () {
                           setState(() {
-                            selectedMenu = 'Upcoming Bookings';
-                            selectedParent = 0;
-                            selectedChild = 0;
-                            _currentPage = UpcomingBookings();
-                          });
+  selectedMenu = 'Upcoming Bookings';
+  selectedParent = 0;
+  selectedChild = 0;
+  _currentPage = UpcomingBookings(
+    onPageChange: (Widget newPage) {
+      setState(() {
+        _currentPage = newPage;
+      });
+    },
+  );
+});
+
                         },
                       ),
                       ListTile(
@@ -208,11 +214,17 @@ class _SideAndNavBarState extends State<SideAndNavBar> {
                         ),
                         onTap: () {
                           setState(() {
-                            selectedMenu = 'Completed Bookings';
-                            selectedParent = 0;
-                            selectedChild = 1;
-                            _currentPage = CompletedBookings();
-                          });
+  selectedMenu = 'Completed Bookings';
+  selectedParent = 0;
+  selectedChild = 0;
+  _currentPage = CompletedBookings(
+    onPageChange: (Widget newPage) {
+      setState(() {
+        _currentPage = newPage;
+      });
+    },
+  );
+});
                         },
                       ),
                       ListTile(
@@ -224,11 +236,17 @@ class _SideAndNavBarState extends State<SideAndNavBar> {
                         ),
                         onTap: () {
                           setState(() {
-                            selectedMenu = 'Cancelled Bookings';
-                            selectedParent = 0;
-                            selectedChild = 2;
-                            _currentPage = UpcomingBookingsPage();
-                          });
+  selectedMenu = 'Cancelled Bookings';
+  selectedParent = 0;
+  selectedChild = 0;
+  _currentPage = CancelledBookings(
+    onPageChange: (Widget newPage) {
+      setState(() {
+        _currentPage = newPage;
+      });
+    },
+  );
+});
                         },
                       ),
                     ],

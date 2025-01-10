@@ -41,8 +41,8 @@ class _UpcomingBookingDetailsState extends State<UpcomingBookingDetails> {
   Future<void> _fetchBookingDetails() async {
     try {
       final response = await _dio.post(
-        'https://avoota-core-v6.onrender.com/api/avoota/booking-details',
-        data: {'bookingId':"TJS205301264892"}, // Send bookingId in request body
+        'https://avoota-core.onrender.com/api/avoota/booking-details',
+        data: {'bookingId':"TJS200501250764"}, // Send bookingId in request body
       );
       final data=response.data;
       final hotelData=data["response"];
@@ -89,24 +89,18 @@ class _UpcomingBookingDetailsState extends State<UpcomingBookingDetails> {
      final itemInfos = _bookingDetails['itemInfos']??{};
     final deliveryInfo = order['deliveryInfo'];
     final hotel = itemInfos['HOTEL'];
-    final hInfo = hotel['hInfo'];
+    final hInfo = hotel['hInfo'] ?? {};
     final dynamic ad = hInfo['ad'];
     final dynamic cnt = hInfo['cnt'];
     final query = hotel['query'];
      final checkinDate = query['checkinDate'] ?? '';
     final checkoutDate = query['checkoutDate'] ?? '';
     final dynamic ops = hInfo['ops'];
-
-
-    // Calculate no. of days
     final noOfDays = checkinDate.isNotEmpty && checkoutDate.isNotEmpty
         ? _calculateDays(checkinDate, checkoutDate)
         : 0;
-
-    // Calculate no. of people
-    final roomInfo = query['roomInfo'] ?? [];
+    final roomInfo = query['roomInfo'];
     final noOfPeople = roomInfo.isNotEmpty ? _calculatePeople(roomInfo) : 0;
-
 
      print("deliveryInfo>>>>>>${deliveryInfo}");
      print("HotelInfo>>>>>>${hInfo}");
@@ -142,14 +136,14 @@ class _UpcomingBookingDetailsState extends State<UpcomingBookingDetails> {
     final travellerDetails = _bookingDetails['traveller'] ?? {};
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-      ),
+      // appBar: AppBar(
+      //   leading: IconButton(
+      //     icon: const Icon(Icons.arrow_back),
+      //     onPressed: () {
+      //       Navigator.pop(context);
+      //     },
+      //   ),
+      // ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24),

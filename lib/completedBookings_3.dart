@@ -357,6 +357,8 @@ import 'package:avoota/tableFilters.dart';
 import 'package:avoota/booking.dart';
 
 class CompletedBookings extends StatefulWidget {
+  final void Function(Widget) onPageChange;
+  CompletedBookings({required this.onPageChange});
   @override
   _CompletedBookingsState createState() => _CompletedBookingsState();
 }
@@ -476,70 +478,89 @@ class _CompletedBookingsState extends State<CompletedBookings> {
                 onSearchChanged: _updateSearch,
               ),
               SizedBox(height: 10),
-              DataTable(
-                headingRowColor: MaterialStateProperty.resolveWith(
-                  (states) => const Color(0xFFE4F0FF),
-                ),
-                columns: [
-                  DataColumn(label: Checkbox(value: false, onChanged: (v) {})),
-                  DataColumn(label: Text("S.No")),
-                  DataColumn(label: Text("Booking ID")),
-                  DataColumn(label: Text("Guest Name")),
-                  DataColumn(label: Text("Phone")),
-                  DataColumn(label: Text("Actions")),
-                ],
-                rows: List.generate(
-                  endEntry - startEntry,
-                  (index) {
-                    final booking = _filteredBookings[startEntry + index];
-                    return DataRow(
-                      selected: _selectedRows[index],
-                      cells: [
-                        DataCell(Checkbox(
-                          value: _selectedRows[index],
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedRows[index] = value ?? false;
-                            });
-                          },
-                        )),
-                        DataCell(Text("${startEntry + index + 1}")),
-                        DataCell(Text(booking.bookingid??'')),
-                        DataCell(Text(booking.name??'')),
-                        DataCell(Text(booking.phone??'')),
-                        DataCell(Row(
-                          children: [
-                                    TextButton.icon(
-                                      onPressed: () {
-        // Pass bookingId to CompletedBookingDetails screen
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CompletedBookingDetails(
-              bookingId: booking.bookingid ?? '', // Pass bookingId
-            ),
+              Container(
+  margin: EdgeInsets.all(10),
+  width: 1200,  // Make the container fill the width of its parent
+  decoration: BoxDecoration(
+    borderRadius: BorderRadius.circular(12),
+    color: Colors.white,
+  ),
+  child: Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+    child: SingleChildScrollView(  
+      scrollDirection: Axis.horizontal,  
+      child: DataTable(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: const Color.fromARGB(255, 62, 62, 62), 
+            width: 2, 
           ),
-        );
-        print("print booking Id---->${booking.bookingid}");
-      },
-                                      icon: Icon(Icons.visibility,
-                                          color: Colors.blue),
-                                      label: Text("View"),
-                                    ),
-                                    TextButton.icon(
-                                      onPressed: () {},
-                                      icon: Icon(Icons.download,
-                                          color: const Color.fromARGB(
-                                              255, 2, 75, 136)),
-                                      label: Text("Download"),
-                                    ),
-                                  ],
-                        )),
-                      ],
-                    );
+          borderRadius: BorderRadius.circular(8),
+        ),
+        headingRowHeight: 56, 
+        columnSpacing: 120, 
+        dataRowHeight: 60, 
+        headingRowColor: MaterialStateProperty.resolveWith(
+          (states) => const Color(0xFFE4F0FF), // Heading row color
+        ),
+        columns: [
+          DataColumn(label: Checkbox(value: false, onChanged: (v) {})),
+          DataColumn(label: Text("S.No")),
+          DataColumn(label: Text("Booking ID")),
+          DataColumn(label: Text("Guest Name")),
+          DataColumn(label: Text("Phone")),
+          DataColumn(
+    label: Padding(
+      padding: const EdgeInsets.only(left: 70.0), // Adjust this value as needed
+      child: Text("Actions"),
+    ),
+  ),
+        ],
+        rows: List.generate(
+          endEntry - startEntry,
+          (index) {
+            final booking = _filteredBookings[startEntry + index];
+            return DataRow(
+              selected: _selectedRows[index],
+              cells: [
+                DataCell(Checkbox(
+                  value: _selectedRows[index],
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedRows[index] = value ?? false;
+                    });
                   },
-                ),
-              ),
+                )),
+                DataCell(Text("${startEntry + index + 1}")),
+                DataCell(Text(booking.bookingid ?? '')),
+                DataCell(Text(booking.name ?? '')),
+                DataCell(Text(booking.phone ?? '')),
+                DataCell(Row(
+                  children: [
+                    TextButton.icon(
+                      onPressed: () {
+                        widget.onPageChange(UpcomingBookingDetails(
+                          bookingId: booking.bookingid ?? '',
+                        ));
+                      },
+                      icon: Icon(Icons.visibility, color: Colors.blue),
+                      label: Text("View"),
+                    ),
+                    TextButton.icon(
+                      onPressed: () {},
+                      icon: Icon(Icons.download, color: const Color.fromARGB(255, 2, 75, 136)),
+                      label: Text("Download"),
+                    ),
+                  ],
+                )),
+              ],
+            );
+          },
+        ),
+      ),
+    ),
+  ),
+),
               SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

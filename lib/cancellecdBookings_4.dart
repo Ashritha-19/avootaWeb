@@ -1,22 +1,64 @@
-import 'package:flutter/material.dart';
 import 'package:avoota/cancelledbookings.dart';
+import 'package:flutter/material.dart';
+import 'package:avoota/apiservice.dart';
 import 'package:avoota/tableFilters.dart';
+import 'package:avoota/booking.dart';
 
 class CancelledBookings extends StatefulWidget {
+  final void Function(Widget) onPageChange; // Callback for page change
+  CancelledBookings({required this.onPageChange});
   @override
   _CancelledBookingsState createState() => _CancelledBookingsState();
 }
 
 class _CancelledBookingsState extends State<CancelledBookings> {
-  List<bool> _selectedRows = List<bool>.generate(5, (index) => false); // Track row selection
-  int currentPage = 1;
-  int totalEntries = 25; // Total number of bookings
-  int entriesPerPage = 5; // Number of entries per page
-  String searchQuery = ""; // Search filter
+  final ApiService _apiService = ApiService();
+  final TextEditingController _fromDateController = TextEditingController();
+  final TextEditingController _toDateController = TextEditingController();
 
-  // Date controllers
-  TextEditingController _fromDateController = TextEditingController();
-  TextEditingController _toDateController = TextEditingController();
+  List<Booking> _bookings = [];
+  List<Booking> _filteredBookings = [];
+  List<bool> _selectedRows = [];
+  int currentPage = 1;
+  int entriesPerPage = 5;
+  String searchQuery = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchBookings();
+  }
+
+  Future<void> _fetchBookings() async {
+    try {
+      List<Booking> bookings = await _apiService.getAllUpcomingBookings();
+      setState(() {
+        _bookings = bookings;
+        _applyFilters();
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching bookings: $e')),
+      );
+    }
+  }
+
+  void _applyFilters() {
+    setState(() {
+      _filteredBookings = _bookings
+          .where((booking) =>
+              booking.name!.toLowerCase().contains(searchQuery.toLowerCase()))
+          .toList();
+      _selectedRows = List<bool>.generate(_filteredBookings.length, (index) => false);
+    });
+  }
+
+  void _updateSearch(String query) {
+    setState(() {
+      searchQuery = query;
+      _applyFilters();
+    });
+  }
 
   void _updateEntries(int entries) {
     setState(() {
@@ -24,291 +66,171 @@ class _CancelledBookingsState extends State<CancelledBookings> {
     });
   }
 
-  void _updateSearch(String query) {
-    setState(() {
-      searchQuery = query;
-    });
-  }
+  Future<void> _selectDate(TextEditingController controller) async {
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
 
-  @override
-  void initState() {
-    super.initState();
-    _selectedRows = List<bool>.generate(entriesPerPage, (index) => false);
+    if (pickedDate != null) {
+      setState(() {
+        controller.text = pickedDate.toIso8601String().split('T').first;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
+    int totalEntries = _filteredBookings.length;
     int totalPages = (totalEntries / entriesPerPage).ceil();
-    int startEntry = ((currentPage - 1) * entriesPerPage) + 1;
-    int endEntry = (startEntry + entriesPerPage - 1).clamp(0, totalEntries);
+    int startEntry = (currentPage - 1) * entriesPerPage;
+    int endEntry = (startEntry + entriesPerPage).clamp(0, totalEntries);
 
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView( // Enable scrolling to avoid overflow
-          child: Container(
-            margin: EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: Colors.white,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      margin: EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 8),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 40),
+              Row(
                 children: [
-                  SizedBox(height: 40),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Cancelled Bookings",
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 10),
                   Text(
-                    "Dashboard / cancelled Bookings",
-                    style: TextStyle(
-                        fontSize: 16,
-                        color: const Color.fromARGB(255, 59, 99, 243)),
+                    "Canceeled Bookings",
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Wrap(
-                        spacing: 10,
-                        runSpacing: 10,
-                        children: [
-                          _dateFilterField("From Date", screenWidth, _fromDateController),
-                          _dateFilterField("To Date", screenWidth, _toDateController),
-                          _dropdownField("Bulk Actions", screenWidth),
-                        ],
-                      ),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF003572),
-                          padding: EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-                          minimumSize: Size(200, 60),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
+                ],
+              ),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _dateFilterField("From Date", _fromDateController),
+                  _dateFilterField("To Date", _toDateController),
+                  ElevatedButton(
+                    onPressed: () {},
+                    child: Text("Download Reports"),
+                  ),
+                ],
+              ),
+              TableFilters(
+                onEntriesChanged: _updateEntries,
+                onSearchChanged: _updateSearch,
+              ),
+              SizedBox(height: 10),
+              DataTable(
+                headingRowColor: MaterialStateProperty.resolveWith(
+                  (states) => const Color(0xFFE4F0FF),
+                ),
+                columns: [
+                  DataColumn(label: Checkbox(value: false, onChanged: (v) {})),
+                  DataColumn(label: Text("S.No")),
+                  DataColumn(label: Text("Booking ID")),
+                  DataColumn(label: Text("Guest Name")),
+                  DataColumn(label: Text("Phone")),
+                  DataColumn(label: Text("Actions")),
+                ],
+                rows: List.generate(
+                  endEntry - startEntry,
+                  (index) {
+                    final booking = _filteredBookings[startEntry + index];
+                    return DataRow(
+                      selected: _selectedRows[index],
+                      cells: [
+                        DataCell(Checkbox(
+                          value: _selectedRows[index],
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedRows[index] = value ?? false;
+                            });
+                          },
+                        )),
+                        DataCell(Text("${startEntry + index + 1}")),
+                        DataCell(Text(booking.bookingid??'')),
+                        DataCell(Text(booking.name??'')),
+                        DataCell(Text(booking.phone??'')),
+                        DataCell(Row(
                           children: [
-                            Text(
-                              "Download Reports",
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                            ),
-                            SizedBox(width: 8),
-                            Icon(
-                              Icons.arrow_drop_down,
-                              color: Colors.white,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: TableFilters(
-                      onEntriesChanged: _updateEntries,
-                      onSearchChanged: _updateSearch,
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Center(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Color(0xFFD4D4D4), width: 2.0),
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        child: DataTable(
-                          headingRowColor: MaterialStateProperty.resolveWith<Color>(
-                            (states) => const Color(0xFFE4F0FF),
-                          ),
-                          columns: [
-                            DataColumn(
-                              label: Center(
-                                child: Checkbox(
-                                  value: _selectedRows.every((selected) => selected),
-                                  onChanged: (bool? value) {
-                                    setState(() {
-                                      _selectedRows = List<bool>.generate(
-                                          5, (index) => value ?? false);
-                                    });
-                                  },
-                                ),
-                              ),
-                            ),
-                            DataColumn(label: Text("S.No", textAlign: TextAlign.center)),
-                            DataColumn(label: Text("Booking ID", textAlign: TextAlign.center)),
-                            DataColumn(label: Text("Guest Name", textAlign: TextAlign.center)),
-                            DataColumn(label: Text("Phone", textAlign: TextAlign.center)),
-                            DataColumn(label: Text("Updated At", textAlign: TextAlign.center)),
-                            DataColumn(label: Text("Actions", textAlign: TextAlign.center)),
-                          ],
-                          rows: List.generate(5, (index) {
-                            return DataRow(
-                              selected: _selectedRows[index],
-                              cells: [
-                                DataCell(
-                                  Center(
-                                    child: Checkbox(
-                                      value: _selectedRows[index],
-                                      onChanged: (bool? value) {
-                                        setState(() {
-                                          _selectedRows[index] = value ?? false;
-                                        });
-                                      },
+                                    TextButton.icon(
+                                      onPressed: () {
+              widget.onPageChange(CancelledBookingDetails(
+                bookingId: booking.bookingid ?? '',
+              ));
+            },
+                                      icon: Icon(Icons.visibility,
+                                          color: Colors.blue),
+                                      label: Text("View"),
                                     ),
-                                  ),
-                                ),
-                                DataCell(Center(child: Text("${index + 1}"))),
-                                DataCell(Center(child: Text("TJS207601102940 "))),
-                                DataCell(Center(child: Text("User ${index + 1}"))),
-                                DataCell(Center(child: Text("80XXXXXXXX"))),
-                                DataCell(Center(child: Text("18/11/2024"))),
-                                DataCell(
-                                  Row(
-                                    children: [
-                                      TextButton.icon(
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(builder: (context) => CancelledBookingDetails()),
-                                          );
-                                        },
-                                        icon: Icon(Icons.visibility, color: Colors.blue),
-                                        label: Text("View"),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            );
-                          }),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
+                                    TextButton.icon(
+                                      onPressed: () {},
+                                      icon: Icon(Icons.download,
+                                          color: const Color.fromARGB(
+                                              255, 2, 75, 136)),
+                                      label: Text("Download"),
+                                    ),
+                                  ],
+                        )),
+                      ],
+                    );
+                  },
+                ),
+              ),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Showing $startEntry to $endEntry of $totalEntries entries"),
                   Row(
                     children: [
-                      Expanded(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Color(0xFFD0D5DD), width: 2.0),
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                              child: TextButton(
-                                onPressed: currentPage > 1
-                                    ? () {
-                                        setState(() {
-                                          currentPage--;
-                                        });
-                                      }
-                                    : null,
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.arrow_back),
-                                    Text("Previous"),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 10),
-                            Text(
-                              "$currentPage",
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            SizedBox(width: 10),
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Color(0xFFD0D5DD), width: 2.0),
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                              child: TextButton(
-                                onPressed: currentPage < totalPages
-                                    ? () {
-                                        setState(() {
-                                          currentPage++;
-                                        });
-                                      }
-                                    : null,
-                                child: Row(
-                                  children: [
-                                    Text("Next"),
-                                    Icon(Icons.arrow_forward),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                      IconButton(
+                        icon: Icon(Icons.arrow_back),
+                        onPressed: currentPage > 1
+                            ? () => setState(() => currentPage--)
+                            : null,
+                      ),
+                      Text("$currentPage"),
+                      IconButton(
+                        icon: Icon(Icons.arrow_forward),
+                        onPressed: currentPage < totalPages
+                            ? () => setState(() => currentPage++)
+                            : null,
                       ),
                     ],
                   ),
                 ],
               ),
-            ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _dateFilterField(String hint, double screenWidth, TextEditingController controller) {
+  Widget _dateFilterField(String hint, TextEditingController controller) {
     return SizedBox(
-      width: screenWidth > 600 ? 200 : double.infinity,
+      width: 200,
       child: TextField(
         controller: controller,
+        readOnly: true,
         decoration: InputDecoration(
           hintText: hint,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
           suffixIcon: IconButton(
             icon: Icon(Icons.calendar_today),
-            onPressed: () async {
-              DateTime? selectedDate = await showDatePicker(
-                context: context,
-                initialDate: DateTime.now(),
-                firstDate: DateTime(2000),
-                lastDate: DateTime(2100),
-              );
-              if (selectedDate != null) {
-                controller.text = "${selectedDate.toLocal()}".split(' ')[0];
-              }
-            },
+            onPressed: () => _selectDate(controller),
           ),
         ),
       ),
     );
   }
-
-  Widget _dropdownField(String hint, double screenWidth) {
-    return SizedBox(
-      width: screenWidth > 600 ? 200 : double.infinity,
-      child: DropdownButtonFormField<String>(
-        decoration: InputDecoration(border: OutlineInputBorder()),
-        items: ["Option 1", "Option 2", "Option 3"]
-            .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-            .toList(),
-        onChanged: (value) {},
-        hint: Text(hint),
-      ),
-    );
-  }
-  void _updateSelectionState() {
-    _selectedRows = List<bool>.generate(entriesPerPage, (index) => false);
-  }
-}
+} 

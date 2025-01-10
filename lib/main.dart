@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => SideAndNavBar(), // Your main page
         '/upcomingBookingDetails': (context) => UpcomingBookingDetails( bookingId: ModalRoute.of(context)!.settings.arguments as String, ),
         '/completedBookingDetails': (context) => CompletedBookingDetails(bookingId: ModalRoute.of(context)!.settings.arguments as String, ),
-        '/cancelledBookingDetails': (context) => const CancelledBookingDetails(),
+        '/cancelledBookingDetails': (context) => CancelledBookingDetails(bookingId: ModalRoute.of(context)!.settings.arguments as String, ),
         '/reviewScreen': (context) => ReviewScreen(),
       },
       theme: ThemeData(
