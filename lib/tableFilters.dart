@@ -57,7 +57,7 @@ class TableFilters extends StatelessWidget {
                 SizedBox(width: 8),
                 // Search field
                 SizedBox(
-                  width: 420, // Set width for larger screens
+                  width: 250, // Set width for larger screens
                   height: 44,
                   child: TextField(
                     onChanged: (value) =>

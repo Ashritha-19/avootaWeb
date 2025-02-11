@@ -1,52 +1,118 @@
+import 'package:avoota/apiservice.dart';
+import 'package:avoota/models/payment_model.dart';
 import 'package:avoota/phone_pay_details.dart';
 import 'package:flutter/material.dart';
-import 'package:avoota/cancelledbookings.dart';
 import 'package:avoota/tableFilters.dart';
 
+
 class paymentscreen extends StatefulWidget {
+  final void Function(Widget) onPageChange;
+
+  const paymentscreen({super.key, required this.onPageChange});
   @override
   _paymentscreenState createState() => _paymentscreenState();
 }
 
 class _paymentscreenState extends State<paymentscreen> {
-  List<bool> _selectedRows = List<bool>.generate(5, (index) => false); // Track row selection
+  List<bool> _selectedRows = [];
   int currentPage = 1;
-  int totalEntries = 25; // Total number of bookings
-  int entriesPerPage = 5; // Number of entries per page
-  String searchQuery = ""; // Search filter
-
-  // Date controllers
+  int entriesPerPage = 5;
+  String searchQuery = "";
+  final ApiService _apiService = ApiService();
   TextEditingController _fromDateController = TextEditingController();
   TextEditingController _toDateController = TextEditingController();
+  List<PaymentTransaction> _paymentTransactions = [];
+  List<PaymentTransaction> _filteredTransactions = [];
+
+  @override
+  void initState() {
+     _fetchBookings();
+     print("hello from all payments page");
+    super.initState();
+   
+  }
+
+  Future<void> _fetchBookings() async {
+    try {
+      List<PaymentTransaction>? transactions = await _apiService.fetchPaymentTransactions();
+      if (transactions != null) {
+        setState(() {
+          _paymentTransactions = transactions;
+          _filteredTransactions = transactions;
+          _selectedRows = List<bool>.generate(transactions.length, (index) => false);
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error fetching bookings: $e')));
+    }
+  }
+
+  void _applyFilters() {
+
+    List<PaymentTransaction> filtered = _paymentTransactions;
+    if (_fromDateController.text.isNotEmpty && _toDateController.text.isNotEmpty) {
+      DateTime fromDate = DateTime.parse(_fromDateController.text);
+      DateTime toDate = DateTime.parse(_toDateController.text);
+
+      filtered = filtered.where((transaction) {
+        DateTime? paymentDate = transaction.createdTime;
+        if (paymentDate == null) return false;
+        return paymentDate.isAfter(fromDate.subtract(Duration(days: 1))) && 
+         paymentDate.isBefore(toDate.add(Duration(days: 1)));
+      }).toList();
+    }
+
+
+    if (searchQuery.isNotEmpty) {
+      filtered = filtered.where((transaction) {
+        return transaction.gatewayRequest?.bookingId?.contains(searchQuery) ?? false ||
+               transaction.avootaTxnId!.contains(searchQuery) ?? false ||
+               transaction.status!.contains(searchQuery) ?? false;
+      }).toList();
+
+    }
+    setState(() {
+      _filteredTransactions = filtered;
+      currentPage = 1; // Reset to first page when filtering
+    });
+  }
 
   void _updateEntries(int entries) {
     setState(() {
       entriesPerPage = entries;
+      currentPage = 1;
     });
   }
 
   void _updateSearch(String query) {
     setState(() {
       searchQuery = query;
+      _applyFilters();
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _selectedRows = List<bool>.generate(entriesPerPage, (index) => false);
+  double _calculateTotalAmount() {
+    double totalAmount = 0.0;
+    int startEntry = (currentPage - 1) * entriesPerPage;
+    int endEntry = (startEntry + entriesPerPage).clamp(0, _filteredTransactions.length);
+    for (var i = startEntry; i < endEntry; i++) {
+      totalAmount += _filteredTransactions[i].amount ?? 0.0;
+    }
+    return totalAmount;
   }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    int totalPages = (totalEntries / entriesPerPage).ceil();
-    int startEntry = ((currentPage - 1) * entriesPerPage) + 1;
-    int endEntry = (startEntry + entriesPerPage - 1).clamp(0, totalEntries);
+    int totalPages = (_filteredTransactions.length / entriesPerPage).ceil();
+    int startEntry = ((currentPage - 1) * entriesPerPage);
+    int endEntry = (startEntry + entriesPerPage).clamp(0, _filteredTransactions.length);
+
+    double totalAmount = _calculateTotalAmount();
 
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView( // Enable scrolling to avoid overflow
+        child: SingleChildScrollView(
           child: Container(
             margin: EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -58,23 +124,14 @@ class _paymentscreenState extends State<paymentscreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 40),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Text(
-                        "PhonePay Payment",
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                      ),
+                      Text("PhonePay Payment", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                     ],
                   ),
                   SizedBox(height: 10),
-                  Text(
-                    "Dashboard / PhonePay Payment",
-                    style: TextStyle(
-                        fontSize: 16,
-                        color: const Color.fromARGB(255, 59, 99, 243)),
-                  ),
+                  Text("Dashboard / PhonePay Payment", style: TextStyle(fontSize: 16, color: const Color.fromARGB(255, 59, 99, 243))),
                   SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -84,7 +141,7 @@ class _paymentscreenState extends State<paymentscreen> {
                         runSpacing: 10,
                         children: [
                           _dateFilterField("From Date", screenWidth, _fromDateController),
-                          _dateFilterField("To Date", screenWidth, _toDateController),
+                          _dateFilterField("To Date", screenWidth, _toDateController,applyFilter:true),
                           _dropdownField("Bulk Actions", screenWidth),
                         ],
                       ),
@@ -94,22 +151,14 @@ class _paymentscreenState extends State<paymentscreen> {
                           backgroundColor: const Color(0xFF003572),
                           padding: EdgeInsets.symmetric(horizontal: 30, vertical: 20),
                           minimumSize: Size(200, 60),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              "Download Reports",
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                            ),
+                            Text("Download Reports", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                             SizedBox(width: 8),
-                            Icon(
-                              Icons.arrow_drop_down,
-                              color: Colors.white,
-                            ),
+                            Icon(Icons.arrow_drop_down, color: Colors.white),
                           ],
                         ),
                       ),
@@ -117,110 +166,95 @@ class _paymentscreenState extends State<paymentscreen> {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: TableFilters(
-                      onEntriesChanged: _updateEntries,
-                      onSearchChanged: _updateSearch,
-                    ),
+                    child: TableFilters(onEntriesChanged: _updateEntries, onSearchChanged: _updateSearch),
                   ),
                   SizedBox(height: 10),
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Center(
                       child: Container(
+                         width: MediaQuery.of(context).size.width * 0.78,  // Adjust width to your preference
+                        // height: 300, // Fixed table height
                         decoration: BoxDecoration(
                           border: Border.all(color: Color(0xFFD4D4D4), width: 2.0),
                           borderRadius: BorderRadius.circular(8.0),
                         ),
                         child: DataTable(
+                          columnSpacing: 20,
                           headingRowColor: MaterialStateProperty.resolveWith<Color>(
                             (states) => const Color(0xFFE4F0FF),
                           ),
                           columns: [
-                            DataColumn(
-                              label: Center(
-                                child: Checkbox(
-                                  value: _selectedRows.every((selected) => selected),
-                                  onChanged: (bool? value) {
-                                    setState(() {
-                                      _selectedRows = List<bool>.generate(
-                                          5, (index) => value ?? false);
-                                    });
-                                  },
-                                ),
-                              ),
-                            ),
-                            DataColumn(label: Text("S.No", textAlign: TextAlign.center)),
-                            DataColumn(label: Text("Booking ID", textAlign: TextAlign.center)),
-                            DataColumn(label: Text("Transaction ID", textAlign: TextAlign.center)), // Updated
-                            DataColumn(label: Text("Payment Status", textAlign: TextAlign.center)), // Updated
-                            DataColumn(label: Text("Payment Date", textAlign: TextAlign.center)), // Updated
-                            DataColumn(label: Text("Amount", textAlign: TextAlign.center)), // New field
-                            DataColumn(label: Text("Actions", textAlign: TextAlign.center)),
-                          ],
-                          rows: List.generate(5, (index) {
+          DataColumn(label: SizedBox(width: 50, child: Center(child: Text("S.No")))),
+          DataColumn(label: SizedBox(width: 120, child: Center(child: Text("Booking ID")))),
+          DataColumn(label: SizedBox(width: 150, child: Center(child: Text("Transaction ID")))),
+          DataColumn(label: SizedBox(width: 100, child: Center(child: Text("Status")))),
+          DataColumn(label: SizedBox(width: 150, child: Center(child: Text("Payment Date")))),
+          DataColumn(label: SizedBox(width: 100, child: Center(child: Text("Amount")))),
+          DataColumn(label: SizedBox(width: 120, child: Center(child: Text("Actions")))),
+        ],
+                          rows: List.generate(endEntry - startEntry, (index) {
+                            final transaction = _filteredTransactions[startEntry + index];
                             return DataRow(
                               selected: _selectedRows[index],
                               cells: [
-                                DataCell(
-                                  Center(
-                                    child: Checkbox(
-                                      value: _selectedRows[index],
-                                      onChanged: (bool? value) {
-                                        setState(() {
-                                          _selectedRows[index] = value ?? false;
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                ),
-                                DataCell(Center(child: Text("${index + 1}"))),
-                                 DataCell(Center(child: Text("TJS207601102940"))),// Booking ID
-                                DataCell(Center(child: Text("670170dec14as19"))), // Transaction ID
-                                DataCell(Center(child: Text("PAYMENT_SUCCESS"))), // Payment Status
-                                DataCell(Center(child: Text("18/11/2024"))), // Payment Date
-                                DataCell(Center(child: Text("\$1000.00"))), // Amount
-                                DataCell(
-                                  Row(
-                                    children: [
-                                      TextButton.icon(
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(builder: (context) => PayPalPaymentScreen()),
-                                          );
-                                        },
-                                        icon: Icon(Icons.visibility, color: Colors.blue),
-                                        label: Text("View"),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            );
-                          }),
-                        ),
-                      ),
+              DataCell(SizedBox(width: 50, child: Center(child: Text("${startEntry + index + 1}")))),
+              DataCell(SizedBox(
+                width: 120,
+                child: Center(child: Text(transaction.gatewayRequest?.bookingId ?? "N/A", overflow: TextOverflow.ellipsis)),
+              )),
+              DataCell(SizedBox(
+                width: 150,
+                child: Center(child: Text(transaction.finalGatewayResponse?.gatewayResponse?.data?.transactionId ?? "N/A", overflow: TextOverflow.ellipsis)),
+              )),
+              DataCell(SizedBox(
+                width: 100,
+                child: Center(child: Text(transaction.status ?? "N/A", overflow: TextOverflow.ellipsis)),
+              )),
+              DataCell(SizedBox(
+                width: 150,
+                child: Center(child: Text(transaction.createdTime?.toLocal().toString().split(' ')[0] ?? "N/A")),
+              )),
+              DataCell(SizedBox(
+                width: 100,
+                child: Center(child: Text("${transaction.amount?.toStringAsFixed(2) ?? "N/A"}")),
+              )),
+              DataCell(SizedBox(
+                width: 120,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.visibility, color: Colors.blue),
+                      onPressed: () { widget.onPageChange(PayPalPaymentScreen(
+                                        trxId: transaction.finalGatewayResponse?.gatewayResponse?.data?.transactionId ?? 'N/A',
+                                      ));},
                     ),
-                  ),
-                  const SizedBox(height: 0),
-      // Pagination and Total Amount
-Container(
-color: const Color(0xFFE4F0FF), // Set background color
-padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16), // Add some padding
-child: Row(
-  mainAxisAlignment: MainAxisAlignment.center, // Align content to the center
-  children: const [
-    Text(
-      "Total Amount: 5000.00",
-      style: TextStyle(
-        fontWeight: FontWeight.bold,
-        fontSize: 16,
+                  ],
+                ),
+              )),
+            ],
+          );
+        }),
       ),
     ),
-  ],
+  ),
 ),
-)
-,
+                  SizedBox(height: 10),
+                  // Add Total Amount as a row in the table
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    color: const Color(0xFFE4F0FF),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          "Total Amount: ${totalAmount.toStringAsFixed(2)}",
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ),
                   SizedBox(height: 20),
                   Row(
                     children: [
@@ -234,13 +268,7 @@ child: Row(
                                 borderRadius: BorderRadius.circular(8.0),
                               ),
                               child: TextButton(
-                                onPressed: currentPage > 1
-                                    ? () {
-                                        setState(() {
-                                          currentPage--;
-                                        });
-                                      }
-                                    : null,
+                                onPressed: currentPage > 1 ? () => setState(() => currentPage--) : null,
                                 child: Row(
                                   children: [
                                     Icon(Icons.arrow_back),
@@ -250,10 +278,7 @@ child: Row(
                               ),
                             ),
                             SizedBox(width: 10),
-                            Text(
-                              "$currentPage",
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
+                            Text("$currentPage", style: TextStyle(fontWeight: FontWeight.bold)),
                             SizedBox(width: 10),
                             Container(
                               decoration: BoxDecoration(
@@ -261,13 +286,7 @@ child: Row(
                                 borderRadius: BorderRadius.circular(8.0),
                               ),
                               child: TextButton(
-                                onPressed: currentPage < totalPages
-                                    ? () {
-                                        setState(() {
-                                          currentPage++;
-                                        });
-                                      }
-                                    : null,
+                                onPressed: currentPage < totalPages ? () => setState(() => currentPage++) : null,
                                 child: Row(
                                   children: [
                                     Text("Next"),
@@ -290,7 +309,7 @@ child: Row(
     );
   }
 
-  Widget _dateFilterField(String hint, double screenWidth, TextEditingController controller) {
+  Widget _dateFilterField(String hint, double screenWidth, TextEditingController controller,{bool applyFilter = false}) {
     return SizedBox(
       width: screenWidth > 600 ? 200 : double.infinity,
       child: TextField(
@@ -309,6 +328,7 @@ child: Row(
               );
               if (selectedDate != null) {
                 controller.text = "${selectedDate.toLocal()}".split(' ')[0];
+                if (applyFilter) _applyFilters();
               }
             },
           ),
@@ -329,9 +349,5 @@ child: Row(
         hint: Text(hint),
       ),
     );
-  }
-
-  void _updateSelectionState() {
-    _selectedRows = List<bool>.generate(entriesPerPage, (index) => false);
   }
 }

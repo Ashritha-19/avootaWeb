@@ -136,206 +136,223 @@ class _SideAndNavBarState extends State<SideAndNavBar> {
   }
 
   Container _sidebar_container(double screenHeight) {
-    return Container(
-            width: 250,
-            height: screenHeight,
-            color: Colors.white,
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Align(
-                    alignment: Alignment.topCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20),
-                      child: Image.asset(
-                        'assets/avootalogo.png',
-                        width: 210,
-                        height: 72,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                  const Divider(),
-                  // Menu Items
-                  ListTile(
-                    leading: Image.asset('assets/dashboard.png'),
-                    title: const Text('Dashboards'),
-                    onTap: () {
-                      setState(() {
-                        selectedMenu = 'Dashboards';
-                        _currentPage = Center(
-                          child: Text(
-                            'Dashboard Content',
-                            style: TextStyle(fontSize: 18),
-                          ),
-                        );
-                      });
-                    },
-                  ),
-
-                  ExpansionTile(
-                    leading: Image.asset('assets/bookingdetails.png'),
-                    title: Text(
-                      'Booking Details',
-                      style: TextStyle(
-                        color: selectedParent == 0 ? Colors.blue : Colors.black,
-                      ),
-                    ),
-                    children: [
-                      ListTile(
-                        title: Text(
-                          'Upcoming Bookings',
-                          style: TextStyle(
-                            color: selectedChild == 0 ? Colors.blue : Colors.black,
-                          ),
-                        ),
-                        onTap: () {
-                          setState(() {
-  selectedMenu = 'Upcoming Bookings';
-  selectedParent = 0;
-  selectedChild = 0;
-  _currentPage = UpcomingBookings(
-    onPageChange: (Widget newPage) {
-      setState(() {
-        _currentPage = newPage;
-      });
-    },
-  );
-});
-
-                        },
-                      ),
-                      ListTile(
-                        title: Text(
-                          'Completed Bookings',
-                          style: TextStyle(
-                            color: selectedChild == 1 ? Colors.blue : Colors.black,
-                          ),
-                        ),
-                        onTap: () {
-                          setState(() {
-  selectedMenu = 'Completed Bookings';
-  selectedParent = 0;
-  selectedChild = 0;
-  _currentPage = CompletedBookings(
-    onPageChange: (Widget newPage) {
-      setState(() {
-        _currentPage = newPage;
-      });
-    },
-  );
-});
-                        },
-                      ),
-                      ListTile(
-                        title: Text(
-                          'Cancelled Bookings',
-                          style: TextStyle(
-                            color: selectedChild == 2 ? Colors.blue : Colors.black,
-                          ),
-                        ),
-                        onTap: () {
-                          setState(() {
-  selectedMenu = 'Cancelled Bookings';
-  selectedParent = 0;
-  selectedChild = 0;
-  _currentPage = CancelledBookings(
-    onPageChange: (Widget newPage) {
-      setState(() {
-        _currentPage = newPage;
-      });
-    },
-  );
-});
-                        },
-                      ),
-                    ],
-                    onExpansionChanged: (bool expanded) {
-                      setState(() {
-                        selectedParent = expanded ? 0 : -1;
-                        if (!expanded) selectedChild = -1;
-                      });
-                    },
-                  ),
-                  ListTile(
-                    leading: Image.asset('assets/phonepepayment.png'),
-                    title: const Text('PhonePe Payment'),
-                    onTap: () {
-                      setState(() {
-                        selectedMenu = 'PhonePe Payment';
-                        _currentPage = paymentscreen();
-                          // child: Text(
-                          //   'PhonePe Payment Content',
-                          //   style: TextStyle(fontSize: 18),
-                          // ),
-                       
-                      });
-                    },
-                  ),
-                  ListTile(
-                    leading: Image.asset('assets/reviews.png'),
-                    title: const Text('Reviews'),
-                    onTap: () {
-                      setState(() {
-                        selectedMenu = 'Reviews';
-                        _currentPage = Reviews();
-                      });
-                    },
-                  ),
-                  ExpansionTile(
-     leading: Image.asset('assets/reports.png'),
-         title:
-                      Text(
-                        'Reports',
-                        style: TextStyle(
-                          color: selectedParent == 0 ? Colors.blue : Colors.black,
-                        ),
-                      ),
-     
-  children: [
-                           ListTile(
-                          title: Text(
-                            'Revenue Report',
-                            style: TextStyle(
-                              color: selectedChild == 3 ? Colors.blue : Colors.black,
-                            ),
-                          ),
-                          onTap: () {
-                            setState(() {
-                              selectedMenu = 'Revenue Reports';
-                            selectedParent = 0;
-                              selectedChild = 3;
-                              _currentPage=Grid();
-                            });
-                          },
-                        ),
-  ],
-  onExpansionChanged: (bool expanded) {
-                        setState(() {
-                          selectedParent = expanded ? 0 : -1;
-                          if (!expanded) selectedChild = -1;
-                        });
-                      },
-),
-                            ListTile(
-                    leading: Image.asset('assets/logout.png'),
-                    title: const Text('Logout'),
-                    onTap: () {
-                      setState(() {
-                        selectedMenu = 'Logout';
-                        _currentPage = Center(
-                          child: Text(
-                            'Logout Content',
-                            style: TextStyle(fontSize: 18),
-                          ),
-                        );
-                      });
-                    },
-                  ),
-
-                ],
+  return Container(
+    width: 250,
+    height: screenHeight,
+    color: Colors.white,
+    child: SingleChildScrollView(
+      child: Column(
+        children: [
+          Align(
+            alignment: Alignment.topCenter,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Image.asset(
+                'assets/avootalogo.png',
+                width: 210,
+                height: 72,
+                fit: BoxFit.contain,
               ),
             ),
-          );
-  }
+          ),
+          const Divider(),
+          // Menu Items
+          ListTile(
+            leading: Image.asset('assets/dashboard.png'),
+            title: Text(
+              'Dashboards',
+              style: TextStyle(
+                color: selectedMenu == 'Dashboards' ? Colors.blue : Colors.black,
+              ),
+            ),
+            onTap: () {
+              setState(() {
+                selectedMenu = 'Dashboards';
+                _currentPage = Center(
+                  child: Text(
+                    'Dashboard Content',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                );
+              });
+            },
+          ),
+          ExpansionTile(
+            leading: Image.asset('assets/bookingdetails.png'),
+            title: Text(
+              'Booking Details',
+              style: TextStyle(
+                color: selectedParent == 0 ? Colors.blue : Colors.black,
+              ),
+            ),
+            children: [
+              ListTile(
+                title: Text(
+                  'Upcoming Bookings',
+                  style: TextStyle(
+                    color: selectedChild == 0 ? Colors.blue : Colors.black,
+                  ),
+                ),
+                onTap: () {
+                  setState(() {
+                    selectedMenu = 'Upcoming Bookings';
+                    selectedParent = 0;
+                    selectedChild = 0;
+                    _currentPage = UpcomingBookings(
+                      onPageChange: (Widget newPage) {
+                        setState(() {
+                          _currentPage = newPage;
+                        });
+                      },
+                    );
+                  });
+                },
+              ),
+              ListTile(
+                title: Text(
+                  'Completed Bookings',
+                  style: TextStyle(
+                    color: selectedChild == 1 ? Colors.blue : Colors.black,
+                  ),
+                ),
+                onTap: () {
+                  setState(() {
+                    selectedMenu = 'Completed Bookings';
+                    selectedParent = 0;
+                    selectedChild = 1;
+                    _currentPage = CompletedBookings(
+                      onPageChange: (Widget newPage) {
+                        setState(() {
+                          _currentPage = newPage;
+                        });
+                      },
+                    );
+                  });
+                },
+              ),
+              ListTile(
+                title: Text(
+                  'Cancelled Bookings',
+                  style: TextStyle(
+                    color: selectedChild == 2 ? Colors.blue : Colors.black,
+                  ),
+                ),
+                onTap: () {
+                  setState(() {
+                    selectedMenu = 'Cancelled Bookings';
+                    selectedParent = 0;
+                    selectedChild = 2;
+                    _currentPage = CancelledBookings(
+                      onPageChange: (Widget newPage) {
+                        setState(() {
+                          _currentPage = newPage;
+                        });
+                      },
+                    );
+                  });
+                },
+              ),
+            ],
+            onExpansionChanged: (bool expanded) {
+              setState(() {
+                selectedParent = expanded ? 0 : -1;
+                if (!expanded) selectedChild = -1;
+              });
+            },
+          ),
+          ListTile(
+            leading: Image.asset('assets/phonepepayment.png'),
+            title: Text(
+              'PhonePe Payment',
+              style: TextStyle(
+                color: selectedMenu == 'PhonePe Payment' ? Colors.blue : Colors.black,
+              ),
+            ),
+            onTap: () {
+              setState(() {
+                selectedMenu = 'PhonePe Payment';
+                _currentPage = paymentscreen(
+                      onPageChange: (Widget newPage) {
+                        setState(() {
+                          _currentPage = newPage;
+                        });
+                      },
+                    );
+              });
+            },
+          ),
+          ListTile(
+            leading: Image.asset('assets/reviews.png'),
+            title: Text(
+              'Reviews',
+              style: TextStyle(
+                color: selectedMenu == 'Reviews' ? Colors.blue : Colors.black,
+              ),
+            ),
+            onTap: () {
+              setState(() {
+                selectedMenu = 'Reviews';
+                _currentPage = Reviews();
+              });
+            },
+          ),
+          ExpansionTile(
+            leading: Image.asset('assets/reports.png'),
+            title: Text(
+              'Reports',
+              style: TextStyle(
+                color: selectedParent == 1 ? Colors.blue : Colors.black,
+              ),
+            ),
+            children: [
+              ListTile(
+                title: Text(
+                  'Revenue Report',
+                  style: TextStyle(
+                    color: selectedChild == 3 ? Colors.blue : Colors.black,
+                  ),
+                ),
+                onTap: () {
+                  setState(() {
+                    selectedMenu = 'Revenue Reports';
+                    selectedParent = 1;
+                    selectedChild = 3;
+                    _currentPage = Grid();
+                  });
+                },
+              ),
+            ],
+            onExpansionChanged: (bool expanded) {
+              setState(() {
+                selectedParent = expanded ? 1 : -1;
+                if (!expanded) selectedChild = -1;
+              });
+            },
+          ),
+          ListTile(
+            leading: Image.asset('assets/logout.png'),
+            title: Text(
+              'Logout',
+              style: TextStyle(
+                color: selectedMenu == 'Logout' ? Colors.blue : Colors.black,
+              ),
+            ),
+            onTap: () {
+              setState(() {
+                selectedMenu = 'Logout';
+                _currentPage = Center(
+                  child: Text(
+                    'Logout Content',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                );
+              });
+            },
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 }

@@ -1,7 +1,12 @@
+import 'dart:convert';
+
+import 'package:avoota/apiservice.dart';
+import 'package:avoota/models/payment_model.dart';
 import 'package:flutter/material.dart';
 
 class PayPalPaymentScreen extends StatefulWidget {
-  const PayPalPaymentScreen({super.key});
+ final String trxId;
+  const PayPalPaymentScreen({super.key,required this.trxId});
 
   @override
   _PayPalPaymentScreenState createState() => _PayPalPaymentScreenState();
@@ -9,16 +14,47 @@ class PayPalPaymentScreen extends StatefulWidget {
 
 class _PayPalPaymentScreenState extends State<PayPalPaymentScreen> {
   bool isPayPalPaymentVisible = true;
+  PaymentTransaction? paymentTransaction;
+  bool isLoading = true;
+  bool hasError = false;
+  final ApiService _apiService = ApiService();
+
+@override
+  void initState() {
+    fetchPaymentTransactions();
+    print('AvootaTxnId ----->>>>>>>.${widget.trxId}');
+    super.initState();
+    
+  }
+
+  Future<void> fetchPaymentTransactions() async {
+    try {
+      final fetchedTransactions = await _apiService.fetchPaymentTransactionById(widget.trxId);
+      print('Payment response ----->>>>>>>.${fetchedTransactions}');
+      setState(() {
+        paymentTransaction = fetchedTransactions;
+        print('BookingId ----->>>>>>>.${fetchedTransactions?.finalGatewayResponse?.gatewayResponse?.data?.transactionId}');
+       
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        hasError = true;
+        isLoading = false;
+      });
+      print('Error fetching transactions: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final paymentDetails = PaymentDetails(
-      amount: '1500',
-      bookingId: 'PP123456789',
-      paymentStatus: 'PAYMENT_PENDING',
-      responseMessage: '{"success":true,"code":"PAYMENT_INITIATED","message":"Payment initiated","data":{"transactionId":"ABC123","redirectUrl":"https://paypal.com/pay?token=example"}}',
+      amount: paymentTransaction?.amount.toString() ?? 'N/A',
+      bookingId: paymentTransaction?.gatewayRequest?.bookingId ?? 'N/A',
+      paymentStatus: paymentTransaction?.status ?? 'N/A',
+      responseMessage: jsonEncode(paymentTransaction?.finalGatewayResponse ?? 'N/A'),
       providerReferenceId: 'PROVIDER123',
-      merchantOrderId: 'ORDER123',
+      merchantOrderId: paymentTransaction?.gatewayRequest?.gatewayRequestDetails?.merchantId ?? 'N/A',
       checksum: 'CHECKSUM123',
     );
 
@@ -182,6 +218,9 @@ class DetailRow extends StatelessWidget {
     );
   }
 }
+
+
+
 
 class PaymentDetails {
   final String amount;

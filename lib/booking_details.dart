@@ -1,57 +1,63 @@
+import 'package:avoota/apiservice.dart';
+import 'package:avoota/models/booking_details_model.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 
-class UpcomingBookingDetails extends StatefulWidget {
+class BookingDetailsScreen extends StatefulWidget {
   final String bookingId;
 
-  const UpcomingBookingDetails({Key? key, required this.bookingId})
+  const BookingDetailsScreen({Key? key, required this.bookingId})
       : super(key: key);
 
   @override
-  _UpcomingBookingDetailsState createState() =>
-      _UpcomingBookingDetailsState();
+  _BookingDetailsScreenState createState() =>
+      _BookingDetailsScreenState();
 }
 
-class _UpcomingBookingDetailsState extends State<UpcomingBookingDetails> {
+class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
   final Dio _dio = Dio();
   bool _isLoading = true;
   bool _hasError = false;
-  Map<String, dynamic> _bookingDetails = {};
+  BookingId? bookingDetails;
+  
+  final ApiService _apiService = ApiService();
 
-  // Helper method to calculate the number of days
-  int _calculateDays(String checkin, String checkout) {
-    final checkinDate = DateTime.parse(checkin);
-    final checkoutDate = DateTime.parse(checkout);
-    return checkoutDate.difference(checkinDate).inDays;
-  }
+ 
 
   // Helper method to calculate the number of people
-  int _calculatePeople(List<dynamic> roomInfo) {
-    int numberOfAdults = roomInfo[0]['numberOfAdults'] ?? 0;
-    int numberOfChild = roomInfo[0]['numberOfChild'] ?? 0;
-    return numberOfAdults + numberOfChild;
-  }
+  // int _calculatePeople(List<dynamic> roomInfo) {
+  //   int numberOfAdults = roomInfo[0]['numberOfAdults'] ?? 0;
+  //   int numberOfChild = roomInfo[0]['numberOfChild'] ?? 0;
+  //   return numberOfAdults + numberOfChild;
+  // }
+
+  
 
   @override
   void initState() {
-    super.initState();
     _fetchBookingDetails();
+    print('bookig id ------>${widget.bookingId}');
+    super.initState();
+    
   }
 
   Future<void> _fetchBookingDetails() async {
     try {
-      final response = await _dio.post(
-        'https://avoota-core.onrender.com/api/avoota/booking-details',
-        data: {'bookingId':"TJS200501250764"}, // Send bookingId in request body
-      );
-      final data=response.data;
-      final hotelData=data["response"];
-      setState(() {
-        print(response);
-        _isLoading = false;
-        _bookingDetails = hotelData;
-        _hasError = false;
-      });
+      print('Fetching booking details for ID: ${widget.bookingId}');
+      BookingId? details = await _apiService.fetchBookingDetails(widget.bookingId);
+
+      if (details != null) {
+        setState(() {
+          bookingDetails = details;  
+          _isLoading = false;
+          _hasError = false;
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+          _hasError = true;
+        });
+      }
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -63,50 +69,36 @@ class _UpcomingBookingDetailsState extends State<UpcomingBookingDetails> {
     }
   }
 
-//   getAllUpcomingBookings() async {
-//     try {
-//       final payload={
-//     "bookingId": "TJS200501250764"
-// };
-//       final response = await _dio.post('https://avoota-core-v6.onrender.com/api/avoota/booking-details',data: payload);
-//       print(response);
+  int _calculateDays(String? checkin, String? checkout) {
+  if (checkin == null || checkout == null) {
+    return 0; // Default to 0 days if either date is null
+  }
+  
+  final checkinDate = DateTime.parse(checkin);
+  final checkoutDate = DateTime.parse(checkout);
+  return checkoutDate.difference(checkinDate).inDays;
+}
 
-//       if (response.data["avootaStatus"] == "SUCCESS") {
-//          final List<dynamic> data = response.data;
-//       return data.map((e) => Booking.fromJson(e));
-//       } else {
-//         throw Exception('Failed to load bookings');
-//       }
-//     } catch (e) {
-//       throw Exception('Error fetching data: $e');
-//     }
-//   }
+  
+  
 
   @override
   Widget build(BuildContext context) {
-  
-     final order = _bookingDetails['order']??{};
-     final itemInfos = _bookingDetails['itemInfos']??{};
-    final deliveryInfo = order['deliveryInfo'];
-    final hotel = itemInfos['HOTEL'];
-    final hInfo = hotel['hInfo'] ?? {};
-    final dynamic ad = hInfo['ad'];
-    final dynamic cnt = hInfo['cnt'];
-    final query = hotel['query'];
-     final checkinDate = query['checkinDate'] ?? '';
-    final checkoutDate = query['checkoutDate'] ?? '';
-    final dynamic ops = hInfo['ops'];
-    final noOfDays = checkinDate.isNotEmpty && checkoutDate.isNotEmpty
-        ? _calculateDays(checkinDate, checkoutDate)
-        : 0;
-    final roomInfo = query['roomInfo'];
-    final noOfPeople = roomInfo.isNotEmpty ? _calculatePeople(roomInfo) : 0;
+    
+  TravellerInfo? firstTraveller = bookingDetails?.request?.roomTravellerInfo
+        ?.expand((room) => room.travellerInfo ?? [])
+        .toList()
+        .firstOrNull;
 
-     print("deliveryInfo>>>>>>${deliveryInfo}");
-     print("HotelInfo>>>>>>${hInfo}");
-     print("AddressInfo>>>>>>${ad}");
-     print("AddressInfo>>>>>>${query}");
-     print("AddressInfo>>>>>>${ops}");
+        
+
+      
+
+        int numberOfDays = _calculateDays(
+  bookingDetails?.checkInDate,
+  bookingDetails?.checkOutDate,
+);
+  
     if (_isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -130,10 +122,7 @@ class _UpcomingBookingDetailsState extends State<UpcomingBookingDetails> {
       );
     }
 
-    // Extracting booking data from the fetched response
-    final hotelDetails = _bookingDetails['hotel'] ?? {};
-    final bookingDetails = _bookingDetails['booking'] ?? {};
-    final travellerDetails = _bookingDetails['traveller'] ?? {};
+  
 
     return Scaffold(
       // appBar: AppBar(
@@ -203,18 +192,19 @@ class _UpcomingBookingDetailsState extends State<UpcomingBookingDetails> {
                   _buildRowDetails(
                     ['Hotel Name', 'Phone', 'City'],
                     [
-                      hInfo['name'] ?? '',
-                      cnt['ph'] ?? '',
-                      ad['city']['name'] ?? ''
+                      bookingDetails?.hotelName ?? 'N/A',
+                      bookingDetails?.checkOutDate ?? 'N/A',
+                      bookingDetails?.checkOutDate ?? 'N/A'
+                      
                     ],
                   ),
                   const SizedBox(height: 16),
                   _buildRowDetails(
                     ['Address', 'State', 'Country'],
                     [
-                      ad['adr'] ?? '',
-                      ad['state']['name'] ?? '',
-                      ad['country']['name'] ?? ''
+                     bookingDetails?.address ?? 'N/A',
+                      bookingDetails?.checkOutDate ?? 'N/A',
+                      bookingDetails?.checkOutDate ?? 'N/A'
                     ],
                   ),
                 ],
@@ -228,18 +218,18 @@ class _UpcomingBookingDetailsState extends State<UpcomingBookingDetails> {
                   _buildRowDetails(
                     ['Booking ID', 'Check-In Date', 'Check-Out Date'],
                     [
-                      order['bookingId'] ?? '',
-                      checkinDate,
-                      checkoutDate
+                     bookingDetails?.bookingId ?? 'N/A',
+                      bookingDetails?.checkInDate ?? 'N/A',
+                      bookingDetails?.checkOutDate ?? 'N/A'
                     ],
                   ),
                   const SizedBox(height: 16),
                   _buildRowDetails(
                     ['No of Days', 'Room Type', 'No of People'],
                     [
-                     noOfDays.toString(),
-                      _bookingDetails['roomType'] ?? '',
-                     noOfPeople.toString()
+                    numberOfDays.toString(),
+                      bookingDetails?.checkOutDate ?? 'N/A',
+                      bookingDetails?.numOfAdults?.toString() ?? 'N/A'
                     ],
                   ),
                 ],
@@ -250,13 +240,14 @@ class _UpcomingBookingDetailsState extends State<UpcomingBookingDetails> {
               _buildDetailsCard(
                 title: 'Traveller Details',
                 details: [
+                  
                   _buildRowDetails(
                     ['Name', 'Phone', 'Email', 'Pan'],
                     [
-                      _bookingDetails['name'] ?? '',
-                      (deliveryInfo['contacts'] as List).join(', '),
-                      (deliveryInfo['emails'] as List).join(', '),
-                      _bookingDetails['pan'] ?? ''
+                      '${firstTraveller?.fN ?? 'N/A'} ${firstTraveller?.lN ?? ''}',
+                      bookingDetails?.request?.deliveryInfo?.contacts?.first ?? 'N/A',
+                      bookingDetails?.request?.deliveryInfo?.emails?.first ?? 'N/A',
+                     firstTraveller?.pan ?? 'N/A',
                     ],
                   ),
                 ],
