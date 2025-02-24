@@ -10,7 +10,7 @@ class ApiService {
   
   Future<List<Booking>> getAllhBookings(String type) async {
     try {
-      final response = await _dio.get('http://localhost:16669/api/avoota/all-bookings');
+      final response = await _dio.get('https://avoota-core.onrender.com/api/avoota/all-bookings');
       print("response of all boookings ---->${response.data}");
       if (response.statusCode == 200) {
         BookingResponse bookingResponse = BookingResponse.fromJson(response.data);
@@ -38,7 +38,7 @@ class ApiService {
   Future<BookingId?> fetchBookingDetails(String bookingId) async {
   try {
     final response = await _dio.post(
-      "http://localhost:16669/api/avoota/fetch-booking-by-bookingId",
+      "https://avoota-core.onrender.com/api/avoota/fetch-booking-by-bookingId",
       data: {
         "bookingId": bookingId, 
       }
@@ -68,7 +68,7 @@ class ApiService {
 
 Future<List<PaymentTransaction>?> fetchPaymentTransactions() async {
   try {
-    final response = await _dio.get('http://localhost:16669/api/avoota/all-payments');
+    final response = await _dio.get('https://avoota-core.onrender.com/api/avoota/all-payments');
 
     if (response.statusCode == 200) {
       if (response.data != null) {
@@ -102,7 +102,7 @@ Future<List<PaymentTransaction>?> fetchPaymentTransactions() async {
 Future<PaymentTransaction?> fetchPaymentTransactionById(String bookingId) async {
   try {
     final response = await _dio.post(
-      'http://localhost:16669/api/avoota/payments-byId',
+      'https://avoota-core.onrender.com/api/avoota/payments-byId',
       data: {
         "txnId": bookingId, 
       },
